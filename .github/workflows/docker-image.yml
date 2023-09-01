@@ -5,9 +5,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,23 +18,19 @@ jobs:
             image: dymafr/chap19-node
 
     steps:
-    # Récupérer le code source
-    - name: Checkout code
+    - name: Récupérer le code source
       uses: actions/checkout@v3
 
-    # Obtenir le hash du dernier commit pour le tag des nouvelles images
-    - name: Obtenir la version
+    - name: Obtenir le hash du dernier commit pour le tag des nouvelles images
       id: get_version
       run: echo ::set-output name=VERSION::$(echo $GITHUB_SHA | cut -c1-7)
 
-    # Se connecter à Docker Hub
     - name: Connexion à Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         
-    # Construire et pousser l'image Docker
     - name: Construire et pousser l'image ${{ matrix.name }}
       uses: docker/build-push-action@v4
       with:
@@ -44,9 +38,15 @@ jobs:
         file: ${{ matrix.directory }}/Dockerfile
         push: true
         tags: ${{ matrix.image }}:${{ steps.get_version.outputs.VERSION }}
+
+    - name: Configurer la clé SSH
+      run: |
+        echo "${{ secrets.GH_SSH_KEY }}" > deploy_key
+        chmod 600 deploy_key
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        ssh-add deploy_key
         
-    # Mettre à jour le fichier de déploiement Kubernetes
-    - name: Mettre à jour le déploiement Kubernetes
+    - name: Mettre à jour les déploiements Kubernetes
       run: |
         git clone https://github.com/dymafr/kubernetes-c19-infra.git
 
@@ -56,7 +56,7 @@ jobs:
         fi
 
         # Pour l'API node
-        if [[ "${{ matrix.name }}" == "node" ]]; then
+        if [[ "${{ matrix.name }}" == "api-node" ]]; then
           sed -i "s|image: dymafr/chap19-node:[a-zA-Z0-9_.-]*|image: dymafr/chap19-node:${{ steps.get_version.outputs.VERSION }}|g" kubernetes-c19-infra/k8s/api.deployment.yaml
         fi
 
