@@ -13,10 +13,10 @@ jobs:
       matrix:
         include:
           - name: front
-            dockerfile: ./frontend/Dockerfile
+            directory: ./frontend
             image: dymafr/chap19-front
           - name: api-node
-            dockerfile: ./node-api/Dockerfile
+            directory: ./node-api
             image: dymafr/chap19-node
 
     steps:
@@ -40,8 +40,8 @@ jobs:
     - name: Construire et pousser l'image ${{ matrix.name }}
       uses: docker/build-push-action@v4
       with:
-        context: .
-        file: ${{ matrix.dockerfile }}
+        context: ${{ matrix.directory }}
+        file: ${{ matrix.directory }}/Dockerfile
         push: true
         tags: ${{ matrix.image }}:${{ steps.get_version.outputs.VERSION }}
         
