@@ -41,6 +41,8 @@ jobs:
 
     - name: Configurer la clé SSH
       run: |
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
         echo "${{ secrets.GH_SSH_KEY }}" > deploy_key
         chmod 600 deploy_key
         ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -48,7 +50,7 @@ jobs:
         
     - name: Mettre à jour les déploiements Kubernetes
       run: |
-        git clone https://github.com/dymafr/kubernetes-c19-infra.git
+        git clone git@github.com:dymafr/kubernetes-c19-infra.git
 
         # Pour le frontend
         if [[ "${{ matrix.name }}" == "front" ]]; then
