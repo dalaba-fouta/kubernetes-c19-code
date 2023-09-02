@@ -39,13 +39,10 @@ jobs:
         push: true
         tags: ${{ matrix.image }}:${{ steps.get_version.outputs.VERSION }}
 
-    - name: Configurer la clé SSH
+    - name: Mettre à jour les déploiements Kubernetes
       run: |
         eval $(ssh-agent -s)
         ssh-add - <<< "${{ secrets.GH_SSH_KEY }}"
-        
-    - name: Mettre à jour les déploiements Kubernetes
-      run: |
         ssh-add -l
         echo $SSH_AUTH_SOCK
         git clone git@github.com:dymafr/kubernetes-c19-infra.git
