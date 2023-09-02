@@ -5,7 +5,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build_and_push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,20 +39,26 @@ jobs:
         push: true
         tags: ${{ matrix.image }}:${{ steps.get_version.outputs.VERSION }}
 
-    - name: Mettre à jour les déploiements Kubernetes
-      run: |
-        eval $(ssh-agent -s)
-        ssh-add - <<< "${{ secrets.GH_SSH_KEY }}"
-        ssh-add -l
-        echo $SSH_AUTH_SOCK
-        git clone git@github.com:dymafr/kubernetes-c19-infra.git
-        cd kubernetes-c19-infra/k8s
+  update_k8s:
+      needs: build_and_push
+      runs-on: ubuntu-latest
 
-        sed -i "s|dymafr/chap19-front:[a-zA-Z0-9_.-]*|dymafr/chap19-front:$NEW_TAG_FRONT|g" frontend.deployment.yaml
-        sed -i "s|dymafr/chap19-node:[a-zA-Z0-9_.-]*|dymafr/chap19-node:$NEW_TAG_API|g" api.deployment.yaml
+      steps:
+      - name: Mettre à jour les déploiements Kubernetes
+        run: |
+          eval $(ssh-agent -s)
+          ssh-add - <<< "${{ secrets.GH_SSH_KEY }}"
+          ssh-add -l
+          echo $SSH_AUTH_SOCK
+          git clone git@github.com:dymafr/kubernetes-c19-infra.git
+          cd kubernetes-c19-infra/k8s
 
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "github-actions@example.com"
-        git add .
-        git commit -m "Mise à jour des versions des images dans les déploiements Kubernetes à ${{ steps.get_version.outputs.VERSION }}"
-        git push origin master
+          NEW_TAG=$(echo $GITHUB_SHA | cut -c1-7)
+          sed -i "s|dymafr/chap19-front:[a-zA-Z0-9_.-]*|dymafr/chap19-front:$NEW_TAG|g" frontend.deployment.yaml
+          sed -i "s|dymafr/chap19-node:[a-zA-Z0-9_.-]*|dymafr/chap19-node:$NEW_TAG|g" api.deployment.yaml
+
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@example.com"
+          git add .
+          git commit -m "Mise à jour des versions des images dans les déploiements Kubernetes à $NEW_TAG"
+          git push origin master
