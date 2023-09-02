@@ -48,6 +48,9 @@ jobs:
         ssh-keyscan github.com >> ~/.ssh/known_hosts
         eval $(ssh-agent -s)
         ssh-add deploy_key
+
+        ssh-add -l
+        ls -al ~/.ssh
         
     - name: Mettre à jour les déploiements Kubernetes
       run: |
