@@ -46,7 +46,8 @@ jobs:
         
     - name: Mettre à jour les déploiements Kubernetes
       run: |
-        ssh -vvv git@github.com
+        ssh-add -l
+        echo $SSH_AUTH_SOCK
         git clone git@github.com:dymafr/kubernetes-c19-infra.git
         cd kubernetes-c19-infra/k8s
 
