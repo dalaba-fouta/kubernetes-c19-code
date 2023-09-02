@@ -37,7 +37,7 @@ jobs:
         context: ${{ matrix.directory }}
         file: ${{ matrix.directory }}/Dockerfile
         push: true
-        tags: ${{ matrix.image }}:${{ steps.get_version.outputs.VERSION }}
+        tags: ${{ matrix.image }}:${{ env.VERSION }}
 
   update_k8s:
       needs: build_and_push
