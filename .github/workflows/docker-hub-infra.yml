@@ -15,7 +15,7 @@ jobs:
             directory: ./frontend
             image: dymafr/chap19-frontend
           - name: api-node
-            directory: ./api-node
+            directory: ./node-api
             image: dymafr/chap19-api-node
     steps:
       - name: Récupérer le code source
